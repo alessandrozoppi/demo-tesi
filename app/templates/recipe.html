@@ -1,0 +1,12 @@
+{% extends 'main.html' %}
+{% block content %}
+<h1>{{ recipe.title }}</h1>
+{% if ingredients %}
+	<h3>List of ingredients</h3>
+	{% for ingredient in ingredients %}
+		<div>
+			<p>{{ ingredient.name }}</p>
+		</div>
+	{% endfor %}
+{% endif %}
+{% endblock %}

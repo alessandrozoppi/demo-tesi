@@ -2,10 +2,14 @@
 {% block content %}
 <h1>{{ recipe.title }}</h1>
 {% if ingredients %}
-	<h3>List of ingredients</h3>
+	{% if recipe.portions != 1 %}
+	<h3>List of ingredients for {{ recipe.portions }} people</h3>
+	{% else %}
+	<h3>List of ingredients for {{ recipe.portions }} person</h3>
+	{% endif %}
 	{% for ingredient in ingredients %}
 		<div>
-			<p>{{ ingredient.name }}</p>
+			<p>{{ingredient.quantity}} {{ingredient.unit}} <strong>{{ ingredient.name }}</strong></p>
 		</div>
 	{% endfor %}
 {% endif %}

@@ -25,7 +25,10 @@ def recipe(recipeTitle):
 def step(recipeTitle, stepNumber):
 	targetRecipe = Recipe.query.filter_by(url_title=recipeTitle).first()
 	targetStep = Step.query.filter_by(id=stepNumber).first()
-	return render_template('step.html', recipe=targetRecipe, stepNumber=stepNumber, stepContent=targetStep.content)
+	return render_template('step.html', recipe=targetRecipe,
+										step=targetStep,
+										stepNumber=stepNumber,
+										stepContent=targetStep.content)
 
 ########## ASK INTENTS ##########
 
@@ -33,11 +36,16 @@ def step(recipeTitle, stepNumber):
 def listify(query):
 	queryList = []
 	try:
-		for item in query:
+		for item in query: #recipes
 			queryList.append(item.title)
 	except AttributeError:	#listyfy works for both Recipe.title and Ingredient.name
-		for item in query:
-			queryList.append(item.name)
+		for item in query: #ingredients
+			if item.unit != "":
+				fmtItem = "{} {} of {}".format(item.quantity, item.unit, item.name)
+				queryList.append(fmtItem)
+			else: #in case the unit value is empty "es. 2 egg yolks"
+				fmtItem = "{} {}".format(item.quantity, item.name)
+				queryList.append(fmtItem)
 	return queryList
 
 # format a list from a query to make it readable for Alexa
@@ -80,7 +88,7 @@ def showRecipe(recipe):
 	fmtRecipe = recipe.replace(" ", "")
 	print(fmtRecipe)
 	webbrowser.get('firefox').open('http://localhost:5000/recipe/' + fmtRecipe)
-	message = "opening your" + recipe + "recipe"
+	message = "opening your"  + recipe + " recipe"
 	return statement(message)
 
 @ask.intent("StartCookingIntent")
@@ -108,7 +116,10 @@ def nextStep():
 		db.session.commit()
 		print(gbRecipeId.counter)
 		currentStep = Step.query.filter(Step.recipe_id==gbRecipeId.counter, Step.order==gbStepNumber.counter).first()
-		message = "Step {}, {}".format(gbStepNumber.counter, currentStep.content)
+		if currentStep.extra == None:
+			message = "Step {}, {}".format(gbStepNumber.counter, currentStep.content)
+		else:
+			message = "Step {}, {}. {}".format(gbStepNumber.counter, currentStep.content, currentStep.extra)
 		return statement(message)
 	else:
 		return statement("You completed this recipe!")

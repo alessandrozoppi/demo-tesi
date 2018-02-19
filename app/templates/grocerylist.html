@@ -1,0 +1,15 @@
+{% extends 'main.html' %}
+{% block content %}
+<h1>Grocery list</h1>
+{% if ingredients %}
+	{% for ingredient in ingredients %}
+		<ul>
+			<li>
+				{{ ingredient.name }}
+			</li>
+		</ul>
+	{% endfor %}
+{% else %}
+	<strong>the list is empty</strong>
+{% endif %}
+{% endblock %}

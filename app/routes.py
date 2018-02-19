@@ -2,7 +2,7 @@ import webbrowser
 
 from app import app, db
 from flask import render_template
-from app.models import Recipe, Ingredient, Step, Counter
+from app.models import Recipe, Ingredient, Step, Counter, GroceryList
 
 from app import ask
 from flask_ask import statement, question
@@ -29,6 +29,11 @@ def step(recipeTitle, stepNumber):
 										step=targetStep,
 										stepNumber=stepNumber,
 										stepContent=targetStep.content)
+
+@app.route('/sus-chef/grocery-list/')
+def groceryList():
+	targetIngredients = GroceryList.query.all()
+	return render_template('grocerylist.html', ingredients = targetIngredients)
 
 ########## ASK INTENTS ##########
 
@@ -158,6 +163,10 @@ def showThisStep():
 		return statement("you haven't opened any step yet, try to say: Alexa, tell demo next step")
 
 
-
-
-
+@ask.intent("AddOneIngredientToListIntent")
+def addOneIngredientToList(ingredient):
+	newIngredientEntry = GroceryList(name=ingredient)
+	db.session.add(newIngredientEntry)
+	db.session.commit()
+	message=("I added " + ingredient + " to the list")
+	return statement(message)

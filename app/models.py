@@ -1,9 +1,5 @@
 from app import db
 
-def fmtRecipeUrl(recipe):
-	fmtRecipeUrl = recipe.replace(" ", "")
-	return fmtRecipeUrl
-
 class Recipe(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	title = db.Column(db.String(80))
@@ -30,3 +26,7 @@ class Counter(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(20))
 	counter = db.Column(db.Integer, default=1)
+	
+class GroceryList(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(80))

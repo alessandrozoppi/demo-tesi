@@ -7,7 +7,7 @@ class Recipe(db.Model):
 	url_title = db.Column(db.String(80))
 	step = db.relationship('Step', backref='recipe', cascade='all, delete')
 	ingredient = db.relationship('Ingredient', backref='recipe', cascade='all, delete')
-	
+
 class Step(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	order = db.Column(db.Integer)
@@ -21,7 +21,7 @@ class Ingredient(db.Model):
 	quantity = db.Column(db.Integer)
 	unit = db.Column(db.String)
 	recipe_id = db.Column(db.Integer, db.ForeignKey(Recipe.id))
-	
+
 class Counter(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(20))
@@ -29,4 +29,9 @@ class Counter(db.Model):
 	
 class GroceryList(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(80))
+
+class SeasonalIngredients(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	season = db.Column(db.String(6))
 	name = db.Column(db.String(80))

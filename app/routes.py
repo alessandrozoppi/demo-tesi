@@ -1,11 +1,11 @@
 import webbrowser
 
 from app import app, db
-from flask import render_template
-from app.models import Recipe, Ingredient, Step, Counter, GroceryList
+from flask import render_template, redirect, url_for
+from app.models import Recipe, Ingredient, Step, Counter, GroceryList, SeasonalIngredients
 
 from app import ask
-from flask_ask import statement, question
+from flask_ask import statement, question, session
 
 ########## FLASK ROUTES ##########
 
@@ -30,10 +30,20 @@ def step(recipeTitle, stepNumber):
 										stepNumber=stepNumber,
 										stepContent=targetStep.content)
 
-@app.route('/sus-chef/grocery-list/')
+@app.route('/grocery-list/')
 def groceryList():
 	targetIngredients = GroceryList.query.all()
 	return render_template('grocerylist.html', ingredients = targetIngredients)
+
+
+@app.route('/grocery-list/delete/<ingredientId>')
+def deleteIngredientFromList(ingredientId):
+	fmtIngredientId = int(ingredientId)
+	targetIngredient = GroceryList.query.filter_by(id=fmtIngredientId).first()
+	db.session.delete(targetIngredient)
+	db.session.commit()
+	print(targetIngredient.name + " succesfullt deleted from db")
+	return redirect(url_for('groceryList'))
 
 ########## ASK INTENTS ##########
 
@@ -58,6 +68,21 @@ def commaFormat(itemList):
 	comma = ', '
 	fmtCommaList = comma.join(itemList)
 	return fmtCommaList
+
+# check seasonal ingredients
+def checkSeasonalIngredients(ingredientsToCheckList, currentSeason):
+	targetTable = SeasonalIngredients.query.filter(SeasonalIngredients.season != currentSeason).all()
+	targetIngredientsList = []
+	notSeasonalIngredients = []
+	for item in targetTable:
+		targetIngredientsList.append(item.name)
+	for ingredient in ingredientsToCheckList:
+		if ingredient in targetIngredientsList:
+			print('WARNING: ' + ingredient)
+			notSeasonalIngredients.append(ingredient)
+		else:
+			print("CLEAR: " + ingredient)
+	return notSeasonalIngredients
 
 @ask.launch
 def start_demo():
@@ -165,8 +190,114 @@ def showThisStep():
 
 @ask.intent("AddOneIngredientToListIntent")
 def addOneIngredientToList(ingredient):
-	newIngredientEntry = GroceryList(name=ingredient)
-	db.session.add(newIngredientEntry)
-	db.session.commit()
-	message=("I added " + ingredient + " to the list")
+	checkIngredientsList = []
+	checkIngredientsList.append(ingredient)
+	notSeasonalIngredients = checkSeasonalIngredients(checkIngredientsList, 'winter')
+	if len(notSeasonalIngredients) == 0:
+		newIngredientEntry = GroceryList(name=ingredient)
+		db.session.add(newIngredientEntry)
+		db.session.commit()
+		message= "I added " + ingredient + " to the list"
+		return statement(message)
+	else:
+		message= "{} is not a seasonal ingredient, are you sure you want to add it to the list?".format(ingredient)
+		session.attributes['notSeasonalIngredient'] = ingredient
+		return question(message)
+
+@ask.intent("AddTwoIngredientsToListIntent")
+def addTwoIngredientsToList(ingredientOne, ingredientTwo):
+	checkIngredientsList = []
+	checkIngredientsList.append(ingredientOne)
+	checkIngredientsList.append(ingredientTwo)
+	notSeasonalIngredients = checkSeasonalIngredients(checkIngredientsList, 'winter')
+	if len(notSeasonalIngredients) == 0:
+		for ingredient in checkIngredientsList:
+			newEntry = GroceryList(name = ingredient.name)
+			db.session.add(newEntry)
+			db.session.commit()
+			message = "I added {} and {} to your list".format(ingredientOne, ingredientTwo)
+			return statement(message)
+	elif len(notSeasonalIngredients) == 1:
+		if ingredientOne == notSeasonalIngredients[0]:
+			session.attributes['notSeasonalIngredient'] = ingredientOne
+			newEntry = GroceryList(name=ingredientTwo)
+			db.session.add(newEntry)
+			db.session.commit()
+			message = "I added {}, but {} is not a seasonal ingredient, are you sure you want to adda it to the list?".format(ingredientTwo, ingredientOne)
+			return question(message)
+		else:
+			session.attributes['notSeasonalIngredient'] = ingredientTwo
+			newEntry = GroceryList(name=ingredientOne)
+			db.session.add(newEntry)
+			db.session.commit()
+			message = "I added {}, but {} is not a seasonal ingredient, are you sure you want to add it to the list?".format(ingredientOne, ingredientTwo)
+			return question(message)
+	else:
+		session.attributes['notSeasonalIngredientOne'] = ingredientOne
+		session.attributes['notSeasonalIngredientTwo'] = ingredientTwo
+		message = "{} and {} both aren't seasonal ingredients, are you sure you want to add them?".format(ingredientOne, ingredientTwo)
+		return question(message)
+
+
+@ask.intent("YesAddItAnywayIntent")
+def yesAddItAnyway():
+	notSeasonalIngredientsList = []
+	try:
+		notSeasonalIngredient = session.attributes['notSeasonalIngredient']
+		newEntry = GroceryList(name=notSeasonalIngredient)
+		db.session.add(newEntry)
+		db.session.commit()
+		message = "As you wish, I added {}.".format(notSeasonalIngredient)
+		return statement(message)
+	except KeyError:
+		notSeasonalIngredientOne = session.attributes['notSeasonalIngredientOne']
+		notSeasonalIngredientTwo = session.attributes['notSeasonalIngredientTwo']
+		notSeasonalIngredientsList.append(notSeasonalIngredientOne)
+		notSeasonalIngredientsList.append(notSeasonalIngredientTwo)
+		for item in notSeasonalIngredientsList:
+			newEntry = GroceryList(name=item)
+			db.session.add(newEntry)
+		db.session.commit()
+		message = "Ok, I added {} and {} to your list".format(notSeasonalIngredientOne, notSeasonalIngredientTwo)
+		return statement(message)
+
+
+
+@ask.intent("NoRemoveItIntent")
+def noRemoveIt():
+	notSeasonalIngredientsList = []
+	try:
+		notSeasonalIngredient = session.attributes['notSeasonalIngredient']
+		message = "Good choice, I removed {} from your list".format(notSeasonalIngredient) 
+		return statement(message)
+	except KeyError:
+		notSeasonalIngredientOne = session.attributes['notSeasonalIngredientOne']
+		notSeasonalIngredientTwo = session.attributes['notSeasonalIngredientTwo']
+		notSeasonalIngredientsList.append(notSeasonalIngredientOne)
+		notSeasonalIngredientsList.append(notSeasonalIngredientTwo)
+		message = "Good choice, I removed {} and {} from your list".format(notSeasonalIngredientOne, notSeasonalIngredientTwo)
+		return statement(message)
+
+
+@ask.intent("ShowGroceryListIntent")
+def showGroceryList():
+	webbrowser.get('firefox').open('http://localhost:5000/grocery-list/')
+	message = ("I'm opening your grocery list on your device")
+	return statement(message)
+
+
+@ask.intent("ReadGroceryListIntent")
+def readGroceryList():
+	ingredientsList = GroceryList.query.all()
+	ingredientsNameList = []
+	for ingredient in ingredientsList:
+		ingredientsNameList.append(ingredient.name)
+	fmtIngredientsList = commaFormat(ingredientsNameList)
+	if len(ingredientsNameList) == 2:
+		message = "There are {} and {} in your list".format(ingredientsNameList[0], ingredientsNameList[1])
+	elif len(ingredientsNameList) > 1:
+		message = "There are {} in your list".format(fmtIngredientsList)
+	else:
+		message = "There is {} in your list".format(fmtIngredientsList)
+
 	return statement(message)

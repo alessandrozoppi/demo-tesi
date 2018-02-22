@@ -1,15 +1,18 @@
 {% extends 'main.html' %}
+{% block page %}: grocery list{% endblock %}
 {% block content %}
-<h1>Grocery list</h1>
 {% if ingredients %}
-	{% for ingredient in ingredients %}
-		<ul>
-			<li>
-				{{ ingredient.name }}
-				<a href="/grocery-list/delete/{{ ingredient.id }}">X</a>
-			</li>
-		</ul>
-	{% endfor %}
+	<ul class="groceryList">
+		{% for ingredient in ingredients %}
+		<li>
+			<div class="ingredientToBuy">
+			<p>{{ ingredient.name }}</p>
+			<a id="deleteIcon" href="/grocery-list/delete/{{ ingredient.id }}">x</a>
+			</div>
+		</li>
+		{% endfor %}
+	</ul>
+
 {% else %}
 	<strong>the list is empty</strong>
 {% endif %}

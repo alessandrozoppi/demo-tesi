@@ -8,3 +8,121 @@ body {
 	font-family: Titillium Web;
 }
 
+nav {
+	height: 120px;
+	text-align: center;
+	box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+nav > #logo {
+	padding: 25px 0;
+	font-weight: 700;
+	font-size: 32pt;
+	color: #263970;
+}
+
+.masterContainer {
+	margin: 50px auto;
+	width: 1300px;
+	text-align: center;
+}
+
+#homeImage {
+	width: 100%;
+}
+
+
+/* ========== GROCERY LIST ==========  */
+.masterContainer #groceryListTitle {
+	font-size: 18pt;
+	text-align: left;
+}
+
+.masterContainer .groceryList li {
+	list-style: none;
+}
+
+.masterContainer .groceryList li .ingredientToBuy {
+	margin: 10px 0;
+	width: 100%;
+	height: 100px;
+	background-color: #f2f2f2;
+}
+
+.masterContainer .groceryList li .ingredientToBuy p {
+	font-size: 20pt;
+	padding: 15px 0;
+	display: inline-block;
+	width: 1200px;
+}
+
+.masterContainer .groceryList li .ingredientToBuy a {
+	font-size: 30pt;
+	padding: 15px 39px 24px 39px;
+	display: inline-block;
+	text-decoration: none;
+	color: red;
+}
+
+.masterContainer .groceryList li .ingredientToBuy a:hover {
+	background-color: red;
+	color: #fff;
+	transition: all 0.3s;
+}
+
+/* ========== COOKBOOK ==========  */
+
+.cookbookContainer {
+	margin-top: 50px;
+	text-align: center;
+}
+
+.cookbookRecipeCard {
+	display: inline-block;
+	width: 600px;
+	height: 450px;
+	margin: 0 20px 50px; 20px;
+	text-align: center;
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.cookbookRecipeCard img {
+	width: 600px;
+	height: 350px;
+}
+
+.cookbookRecipeCard a {
+	display: block;
+	text-decoration: none;
+	width: 100%;
+	padding: 25px 0;
+	font-size: 22pt;
+	font-weight: 300;
+	color: #000;
+
+}
+
+.cookbookRecipeCard a:hover {
+	color: #263970;
+	transform: scale(1.05);
+	transition: all 0.3s;
+}
+
+
+
+/* ========== STEPS ==========  */
+
+.stepContainer h3 {
+	font-size: 24pt;
+	margin-bottom: 20px;
+}
+
+.stepContainer img {
+	width: 900px;
+	height: 600px;
+}
+
+.stepContainer p {
+	font-size: 20pt;
+	font-weight: 300;
+}

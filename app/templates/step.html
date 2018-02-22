@@ -1,6 +1,10 @@
 {% extends 'main.html' %}
+{% block page %}: {{ recipe.title }}{% endblock %}
 {% block content %}
-<h1>{{ recipe.title }}</h1>
+<div class="stepContainer">
 <h3>Step: {{ stepNumber }}</h3>
+<img id="stepImage" src="/static/images/{{ recipe.url_title }}/{{ stepNumber }}.jpg">
+<br>
 <p>{{ stepContent }}</p>
+</div>
 {% endblock %}

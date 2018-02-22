@@ -1,0 +1,16 @@
+{% extends 'main.html' %}
+{% block page %}: cookbook{% endblock %}
+{% block content %}
+{% if recipes %}
+	<div class="cookbookContainer">
+	{% for recipe in recipes %}
+		<div class="cookbookRecipeCard">
+			<img alt="{{ recipe.title }} image" src="../static/images/{{ recipe.url_title }}/hero.jpg">
+			<a href="/recipe/{{ recipe.url_title }}">{{ recipe.title }}</a>
+		</div>
+	{% endfor %}
+{% else %}
+	<strong>Your cookbook is empty!</strong>
+	</div>
+{% endif %}
+{% endblock %}

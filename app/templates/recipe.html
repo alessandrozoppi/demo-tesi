@@ -1,6 +1,6 @@
 {% extends 'main.html' %}
+{% block page %}: {{ recipe.title }}{% endblock %}
 {% block content %}
-<h1>{{ recipe.title }}</h1>
 {% if ingredients %}
 	{% if recipe.portions != 1 %}
 	<h3>List of ingredients for {{ recipe.portions }} people</h3>

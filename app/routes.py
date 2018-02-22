@@ -8,23 +8,28 @@ from app import ask
 from flask_ask import statement, question, session
 
 ########## FLASK ROUTES ##########
-
 @app.route('/home/')
 def home():
+	return render_template('home.html')
+
+@app.route('/cookbook/')
+def cookbook():
 	recipes = Recipe.query.all()
-	return render_template('index.html', recipes=recipes)
+	return render_template('cookbook.html', recipes=recipes)
 	
 @app.route('/recipe/<recipeTitle>/')
 def recipe(recipeTitle):
 	recipe = Recipe.query.filter_by(url_title=recipeTitle).first()
 	recipeId = recipe.id
 	ingredients = Ingredient.query.join(Ingredient.recipe).filter(Recipe.id==recipeId).all()
-	return render_template('recipe.html', recipe=recipe, ingredients=ingredients)
+	return render_template('recipe.html', recipe=recipe, ingredients=ingredients, basedir=path)
 	
 @app.route('/recipe/<recipeTitle>/step/<stepNumber>/')
 def step(recipeTitle, stepNumber):
+	gbStepNumber = Counter.query.filter_by(id=2).first()
+	gbRecipeId = Counter.query.filter_by(id=1).first()
 	targetRecipe = Recipe.query.filter_by(url_title=recipeTitle).first()
-	targetStep = Step.query.filter_by(id=stepNumber).first()
+	targetStep = Step.query.filter(Step.recipe_id==targetRecipe.id, Step.order==stepNumber).first()
 	return render_template('step.html', recipe=targetRecipe,
 										step=targetStep,
 										stepNumber=stepNumber,
@@ -109,7 +114,7 @@ def readIngredients(recipe):
 
 @ask.intent("ShowCookBookIntent")
 def showCookBook():
-	webbrowser.get('firefox').open('http://localhost:5000/home/')
+	webbrowser.get('firefox').open('http://localhost:5000/cookbook/')
 	message = "opening your cookbook"
 	return statement(message)
 	
@@ -223,19 +228,19 @@ def addTwoIngredientsToList(ingredientOne, ingredientTwo):
 			newEntry = GroceryList(name=ingredientTwo)
 			db.session.add(newEntry)
 			db.session.commit()
-			message = "I added {}, but {} is not a seasonal ingredient, are you sure you want to adda it to the list?".format(ingredientTwo, ingredientOne)
+			message = "I added {}, but {} is not a seasonal ingredient, are you sure you want to add it to the list".format(ingredientTwo, ingredientOne)
 			return question(message)
 		else:
 			session.attributes['notSeasonalIngredient'] = ingredientTwo
 			newEntry = GroceryList(name=ingredientOne)
 			db.session.add(newEntry)
 			db.session.commit()
-			message = "I added {}, but {} is not a seasonal ingredient, are you sure you want to add it to the list?".format(ingredientOne, ingredientTwo)
+			message = "I added {}, but {} is not a seasonal ingredient, are you sure you want to add it to the list".format(ingredientOne, ingredientTwo)
 			return question(message)
 	else:
 		session.attributes['notSeasonalIngredientOne'] = ingredientOne
 		session.attributes['notSeasonalIngredientTwo'] = ingredientTwo
-		message = "{} and {} both aren't seasonal ingredients, are you sure you want to add them?".format(ingredientOne, ingredientTwo)
+		message = "{} and {} both aren't seasonal ingredients, are you sure you want to add them".format(ingredientOne, ingredientTwo)
 		return question(message)
 
 

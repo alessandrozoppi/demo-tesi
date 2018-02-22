@@ -10,9 +10,13 @@
 </head>
 <body>
 	<nav>
-		<h3>sus-chef</h3>
+		<h1 id="logo">sus-chef{% block page %}{% endblock %}</h1>
 	</nav>
+	{% block header %}
+	{% endblock %}
+	<div class="masterContainer">
     {% block content %}
     {% endblock %}
+    </div>
 </body>
 </html>

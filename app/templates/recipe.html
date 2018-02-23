@@ -2,15 +2,24 @@
 {% block page %}: {{ recipe.title }}{% endblock %}
 {% block content %}
 {% if ingredients %}
+	<div class="recipeInfoContainer">
 	{% if recipe.portions != 1 %}
-	<h3>List of ingredients for {{ recipe.portions }} people</h3>
+	<h3 id="recipeRation">List of ingredients for {{ recipe.portions }} people</h3>
 	{% else %}
-	<h3>List of ingredients for {{ recipe.portions }} person</h3>
+	<h3 id="recipeRation">List of ingredients for {{ recipe.portions }} person</h3>
 	{% endif %}
-	{% for ingredient in ingredients %}
-		<div>
-			<p>{{ingredient.quantity}} {{ingredient.unit}} <strong>{{ ingredient.name }}</strong></p>
+	<a id="startCookingButton" href="/recipe/{{ recipe.title }}/step/1">start cooking</a>
+		<div class="recipeIngredientsCard">
+			<img src="/static/images/{{ recipe.url_title }}/hero_recipe.jpg" alt="{{ recipe.title }} image">
+
+			<ul>
+		{% for ingredient in ingredients %}
+		<li>
+			<p>{{ingredient.quantity}} {{ingredient.unit}} {{ ingredient.name }}</p>
+		</li>
+		{% endfor %}
+			</ul>
 		</div>
-	{% endfor %}
+	</div>
 {% endif %}
 {% endblock %}

@@ -22,7 +22,7 @@ def recipe(recipeTitle):
 	recipe = Recipe.query.filter_by(url_title=recipeTitle).first()
 	recipeId = recipe.id
 	ingredients = Ingredient.query.join(Ingredient.recipe).filter(Recipe.id==recipeId).all()
-	return render_template('recipe.html', recipe=recipe, ingredients=ingredients, basedir=path)
+	return render_template('recipe.html', recipe=recipe, ingredients=ingredients)
 	
 @app.route('/recipe/<recipeTitle>/step/<stepNumber>/')
 def step(recipeTitle, stepNumber):
@@ -91,7 +91,7 @@ def checkSeasonalIngredients(ingredientsToCheckList, currentSeason):
 
 @ask.launch
 def start_demo():
-	message = "The demo is up and running!"
+	message = "soo-chef is up and running!"
 	return statement(message)
 
 @ask.intent("ReadCookBookIntent")

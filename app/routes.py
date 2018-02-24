@@ -60,8 +60,11 @@ def listify(query):
 			queryList.append(item.title)
 	except AttributeError:	#listyfy works for both Recipe.title and Ingredient.name
 		for item in query: #ingredients
-			if item.unit != "":
+			if item.unit != None:
 				fmtItem = "{} {} of {}".format(item.quantity, item.unit, item.name)
+				queryList.append(fmtItem)
+			elif item.quantity == None and item.unit == None: #in case unit and quantity values are empty (salt, pepper)
+				fmtItem = "a bit of {}".format(item.name)
 				queryList.append(fmtItem)
 			else: #in case the unit value is empty "es. 2 egg yolks"
 				fmtItem = "{} {}".format(item.quantity, item.name)
@@ -109,7 +112,58 @@ def readIngredients(recipe):
 	targetIngredients = Ingredient.query.join(Ingredient.recipe).filter(Recipe.url_title==fmtRecipe).all()
 	ingredientsList = listify(targetIngredients)
 	fmtIngredientsList = commaFormat(ingredientsList)
-	message = "The ingredients for {} are {}".format(targetRecipe.title, fmtIngredientsList)
+	if targetRecipe.portions > 1:
+		portionMessage = "people"
+	else:
+		portionMessage = "person"
+	message = "The ingredients for {} for {} {} are {}".format(targetRecipe.title,targetRecipe.portions, portionMessage, fmtIngredientsList)
+	return statement(message)
+
+@ask.intent("ReadIngredientsForNumPeopleIntent")
+def readIngredientsForNumPeople(recipe, people):
+	fmtRecipe = recipe.replace(" ", "")
+	peopleNumber = int(people)
+	oldQuantityList = []
+	targetRecipe = Recipe.query.filter_by(url_title=fmtRecipe).first()
+	targetIngredients = Ingredient.query.join(Ingredient.recipe).filter(Recipe.url_title==fmtRecipe).all()
+	if targetRecipe.portions != peopleNumber:
+		for ingredient in targetIngredients:
+			if ingredient.quantity != None:
+				oldQuantityList.append(ingredient.quantity)
+				newQuantity = int(ingredient.quantity/targetRecipe.portions*peopleNumber)
+				print(ingredient.name + ": " + str(newQuantity))
+				ingredient.quantity = newQuantity
+				db.session.commit()
+			else:
+				oldQuantityList.append(ingredient.quantity)
+				pass
+	else:
+		pass
+	
+	updatedTargetIngredients = Ingredient.query.join(Ingredient.recipe).filter(Recipe.url_title==fmtRecipe).all()
+	ingredientsList = listify(updatedTargetIngredients)
+	fmtIngredientsList = commaFormat(ingredientsList)
+	oldRecipePortions = targetRecipe.portions
+	targetRecipe.portions = peopleNumber
+	db.session.commit()
+	
+	if targetRecipe.portions > 1:
+		portionMessage = "people"
+	else:
+		portionMessage = "person"
+	message = "The ingredients for {} for {} {} are {}".format(targetRecipe.title,targetRecipe.portions, portionMessage, fmtIngredientsList)
+	#restore old portions back to db
+	targetRecipe = Recipe.query.filter_by(url_title=fmtRecipe).first()
+	targetIngredients = Ingredient.query.join(Ingredient.recipe).filter(Recipe.url_title==fmtRecipe).all()
+	targetRecipe.portions = oldRecipePortions
+	counter = 0
+	for ingredient in targetIngredients:
+		restoredQuantity = oldQuantityList[counter]
+		counter += 1
+		ingredient.quantity = restoredQuantity
+		db.session.commit()
+		print(ingredient.name + ": " + str(restoredQuantity))
+		
 	return statement(message)
 
 @ask.intent("ShowCookBookIntent")
@@ -139,6 +193,7 @@ def startCooking(recipe):
 	message = "I'm ready to start cooking {}".format(recipe)
 	return statement(message)
 
+
 @ask.intent("NextStepIntent")
 def nextStep():
 	gbStepNumber = Counter.query.filter_by(id=2).first()
@@ -154,7 +209,7 @@ def nextStep():
 		if currentStep.extra == None:
 			message = "Step {}, {}".format(gbStepNumber.counter, currentStep.content)
 		else:
-			message = "Step {}, {}. {}".format(gbStepNumber.counter, currentStep.content, currentStep.extra)
+			message = "Step {}, {}. Here's a suggestion: {}".format(gbStepNumber.counter, currentStep.content, currentStep.extra)
 		return statement(message)
 	else:
 		return statement("You completed this recipe!")
